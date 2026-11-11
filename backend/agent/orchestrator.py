@@ -6,7 +6,12 @@ from orders.serializers import OrderSerializer
 from orders.services import OrderServiceError, execute_checkout, preview_checkout
 from .guardrails.input_guard import sanitize_user_prompt
 from .guardrails.output_guard import sanitize_assistant_output
-from .guardrails.tool_guard import MAX_TOOL_CALLS_PER_TURN, RISK_HIGH, sanitize_audit_args
+from .guardrails.tool_guard import (
+    MAX_TOOL_CALLS_PER_TURN,
+    RISK_HIGH,
+    is_safe_internal_path,
+    sanitize_audit_args,
+)
 from .models import AgentMessage, AgentSession, PendingAction, ToolAuditLog
 from .prompts import build_system_prompt
 from .tools.registry import dispatch_tool, get_groq_tools_schema
@@ -36,7 +41,7 @@ def _merge_cards(existing_cards, new_cards):
     merged = list(existing_cards)
     for card in new_cards:
         card_type = card.get('type')
-        if card_type in {'cart_summary', 'action_confirm'}:
+        if card_type in {'cart_summary', 'action_confirm', 'navigation_link'}:
             merged = [c for c in merged if c.get('type') != card_type]
         elif card_type == 'product_list':
             merged = [c for c in merged if c.get('type') != 'product_list']
@@ -130,6 +135,7 @@ def run_agent_turn(*, user, raw_message, session_id=None, llm_client=None):
     tool_events = []
     effects = {}
     call_count = 0
+    navigation_count = 0
     assistant_raw_reply = ''
 
     try:
@@ -163,8 +169,11 @@ def run_agent_turn(*, user, raw_message, session_id=None, llm_client=None):
                     user=user,
                     session=session,
                     call_index=call_count,
+                    navigation_count=navigation_count,
                 )
                 call_count += 1
+                if fn_name == 'navigate_to_page' and dispatch.get('outcome') == 'allowed':
+                    navigation_count += 1
 
                 cards = _merge_cards(cards, dispatch.get('cards', []))
                 effects.update(dispatch.get('effects', {}))
@@ -190,6 +199,11 @@ def run_agent_turn(*, user, raw_message, session_id=None, llm_client=None):
             )
     except LLMClientError as exc:
         assistant_raw_reply = str(exc)
+
+    if 'navigate_to' in effects and not is_safe_internal_path(effects.get('navigate_to')):
+        effects.pop('navigate_to', None)
+        effects.pop('navigate_label', None)
+        cards = [c for c in cards if c.get('type') != 'navigation_link']
 
     safe_reply = sanitize_assistant_output(assistant_raw_reply)
     assistant_msg = AgentMessage.objects.create(

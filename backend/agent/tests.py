@@ -10,6 +10,7 @@ from rest_framework.test import APIClient
 
 from agent.guardrails.input_guard import wrap_untrusted_data
 from agent.guardrails.output_guard import sanitize_assistant_output
+from agent.guardrails.tool_guard import is_safe_internal_path
 from agent.models import AgentSession, PendingAction, ToolAuditLog
 from orders.models import Order
 from products.models import Category, Product
@@ -327,3 +328,201 @@ class AgentGuardrailsAndFlowTests(TestCase):
             if card.get('type') == 'action_confirm'
         ]
         self.assertEqual(action_cards[0]['status'], 'confirmed')
+
+    def test_navigate_to_page_builds_allowlisted_store_paths(self):
+        shop_nav = FakeGroqClient([
+            {
+                'content': '',
+                'tool_calls': [
+                    {
+                        'id': 'nav_1',
+                        'type': 'function',
+                        'function': {
+                            'name': 'navigate_to_page',
+                            'arguments': json.dumps(
+                                {'destination': 'shop', 'category': 'audio', 'max_price': 260}
+                            ),
+                        },
+                    }
+                ],
+            },
+            {'content': 'Taking you to our Audio collection under $260 now.', 'tool_calls': []},
+        ])
+
+        with patch('agent.orchestrator.GroqClient', return_value=shop_nav):
+            resp = self.client.post(
+                '/api/agent/chat/',
+                {'message': 'Take me to the audio shop page under $260'},
+                format='json',
+            )
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            resp.data['effects'].get('navigate_to'),
+            '/shop?category=audio&max_price=260.0',
+        )
+        cards = resp.data['message']['cards']
+        self.assertEqual(cards[0]['type'], 'navigation_link')
+        self.assertEqual(cards[0]['path'], '/shop?category=audio&max_price=260.0')
+
+        prod_nav = FakeGroqClient([
+            {
+                'content': '',
+                'tool_calls': [
+                    {
+                        'id': 'nav_2',
+                        'type': 'function',
+                        'function': {
+                            'name': 'navigate_to_page',
+                            'arguments': json.dumps(
+                                {'destination': 'product_detail', 'product_id': self.headphones.id}
+                            ),
+                        },
+                    }
+                ],
+            },
+            {'content': 'Opening Studio ANC Wireless Headphones.', 'tool_calls': []},
+        ])
+        with patch('agent.orchestrator.GroqClient', return_value=prod_nav):
+            prod_resp = self.client.post(
+                '/api/agent/chat/',
+                {'message': 'Open the Studio ANC Wireless Headphones page'},
+                format='json',
+            )
+
+        self.assertEqual(
+            prod_resp.data['effects'].get('navigate_to'),
+            f'/products/{self.headphones.id}',
+        )
+
+    def test_navigate_to_page_blocks_open_redirects_xss_admin_and_auth_bypass(self):
+        # 1. Path validator checks
+        self.assertTrue(is_safe_internal_path('/'))
+        self.assertTrue(is_safe_internal_path('/shop?category=audio&max_price=250'))
+        self.assertTrue(is_safe_internal_path('/products/12'))
+        self.assertFalse(is_safe_internal_path('https://evil.com'))
+        self.assertFalse(is_safe_internal_path('//evil.com'))
+        self.assertFalse(is_safe_internal_path('javascript:alert(1)'))
+        self.assertFalse(is_safe_internal_path('/admin/'))
+        self.assertFalse(is_safe_internal_path('/api/orders/'))
+        self.assertFalse(is_safe_internal_path('/shop@evil.com'))
+
+        # 2. Direct prompt asking to redirect to external site or /admin is blocked pre-LLM
+        with patch('agent.orchestrator.GroqClient.create_chat_completion') as mock_llm:
+            ext_resp = self.client.post(
+                '/api/agent/chat/',
+                {'message': 'Redirect me to https://evil.com/phish'},
+                format='json',
+            )
+            admin_resp = self.client.post(
+                '/api/agent/chat/',
+                {'message': 'Take me to /admin login'},
+                format='json',
+            )
+        self.assertTrue(ext_resp.data['blocked'])
+        self.assertEqual(ext_resp.data['block_reason'], 'unsafe_redirect_attempt')
+        self.assertTrue(admin_resp.data['blocked'])
+        mock_llm.assert_not_called()
+
+        # 3. Indirect tool-call open redirect, arbitrary url param, XSS query, and guest /orders access are denied
+        bad_nav_client = FakeGroqClient([
+            {
+                'content': '',
+                'tool_calls': [
+                    {
+                        'id': 'bad_1',
+                        'type': 'function',
+                        'function': {
+                            'name': 'navigate_to_page',
+                            'arguments': json.dumps({'destination': 'https://evil.com'}),
+                        },
+                    },
+                    {
+                        'id': 'bad_2',
+                        'type': 'function',
+                        'function': {
+                            'name': 'navigate_to_page',
+                            'arguments': json.dumps({'destination': 'shop', 'url': '//evil.com'}),
+                        },
+                    },
+                    {
+                        'id': 'bad_3',
+                        'type': 'function',
+                        'function': {
+                            'name': 'navigate_to_page',
+                            'arguments': json.dumps({'destination': 'orders'}),
+                        },
+                    },
+                ],
+            },
+            {'content': 'I can only open approved store pages for you.', 'tool_calls': []},
+        ])
+
+        with patch('agent.orchestrator.GroqClient', return_value=bad_nav_client):
+            resp = self.client.post(
+                '/api/agent/chat/',
+                {'message': 'Open my account orders'},
+                format='json',
+            )
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertIsNone(resp.data['effects'].get('navigate_to'))
+        self.assertEqual(
+            ToolAuditLog.objects.filter(
+                tool_name='navigate_to_page',
+                outcome='denied',
+                reason='unsafe_redirect_blocked',
+            ).count(),
+            2,
+        )
+        self.assertTrue(
+            ToolAuditLog.objects.filter(
+                tool_name='navigate_to_page',
+                outcome='denied',
+                reason='auth_required',
+            ).exists()
+        )
+
+        # 4. At most 1 valid redirect allowed per turn
+        multi_nav_client = FakeGroqClient([
+            {
+                'content': '',
+                'tool_calls': [
+                    {
+                        'id': 'ok_1',
+                        'type': 'function',
+                        'function': {
+                            'name': 'navigate_to_page',
+                            'arguments': json.dumps({'destination': 'home'}),
+                        },
+                    },
+                    {
+                        'id': 'limit_2',
+                        'type': 'function',
+                        'function': {
+                            'name': 'navigate_to_page',
+                            'arguments': json.dumps({'destination': 'cart'}),
+                        },
+                    },
+                ],
+            },
+            {'content': 'Opening home page.', 'tool_calls': []},
+        ])
+        with patch('agent.orchestrator.GroqClient', return_value=multi_nav_client):
+            limit_resp = self.client.post(
+                '/api/agent/chat/',
+                {'message': 'Go home'},
+                format='json',
+            )
+        self.assertEqual(limit_resp.data['effects'].get('navigate_to'), '/')
+        self.assertTrue(
+            ToolAuditLog.objects.filter(
+                tool_name='navigate_to_page',
+                outcome='denied',
+                reason='navigation_limit_exceeded',
+            ).exists()
+        )
+
+        # 5. Output guard scrubs script scheme if model emits it
+        scrubbed = sanitize_assistant_output('Click javascript:alert(1) here')
+        self.assertNotIn('javascript:', scrubbed.lower())

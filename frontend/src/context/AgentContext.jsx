@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { agentApi } from '../api/agent';
 import { ApiError, BackendUnavailableError } from '../api/client';
+import { isSafeInternalRoute } from '../utils/navigationGuard';
 import { useAuth } from './AuthContext';
 import { useCart } from './CartContext';
 import { useToast } from './ToastContext';
@@ -19,6 +21,7 @@ const WELCOME_MESSAGE = {
 const AgentContext = createContext(null);
 
 export function AgentProvider({ children }) {
+  const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const { refreshCart } = useCart();
   const { pushToast } = useToast();
@@ -115,6 +118,11 @@ export function AgentProvider({ children }) {
         if (res.effects?.cart_updated) {
           await refreshCart();
         }
+        if (res.effects?.navigate_to && isSafeInternalRoute(res.effects.navigate_to)) {
+          navigate(res.effects.navigate_to);
+          setIsOpen(false);
+          pushToast(`Opened ${res.effects.navigate_label || 'page'}.`, 'info');
+        }
         return res;
       } catch (err) {
         const fallbackText =
@@ -137,7 +145,7 @@ export function AgentProvider({ children }) {
         setSending(false);
       }
     },
-    [sending, sessionId, refreshCart]
+    [navigate, pushToast, refreshCart, sending, sessionId]
   );
 
   const submitConfirmation = useCallback(

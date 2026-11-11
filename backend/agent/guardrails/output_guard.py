@@ -7,6 +7,7 @@ SECRET_PATTERNS = (
     re.compile(r'django-insecure-[A-Za-z0-9!@#$%^&*()_+=.-]{12,}'),
     re.compile(r'Bearer\s+[A-Za-z0-9._-]{16,}', re.IGNORECASE),
     re.compile(r'\b(GROQ_API_KEY|SECRET_KEY|GOOGLE_CLIENT_SECRET|DB_PASSWORD)\s*[:=]\s*\S+', re.IGNORECASE),
+    re.compile(r'\b(?:javascript|vbscript|data):[^\s)\]]*', re.IGNORECASE),
 )
 
 PROMPT_LEAK_MARKERS = (

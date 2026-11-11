@@ -99,25 +99,56 @@ WSGI_APPLICATION = 'backend_config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
+def _postgresql_config(name, user, password, host, port, sslmode=''):
+    resolved_sslmode = sslmode.strip() or (
+        'require' if host not in ('localhost', '127.0.0.1', '') else 'prefer'
+    )
+    return {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': name,
+        'USER': user,
+        'PASSWORD': password,
+        'HOST': host,
+        'PORT': str(port),
+        'OPTIONS': {'sslmode': resolved_sslmode},
+    }
+
+
+def _build_default_database():
+    database_url = config('DATABASE_URL', default='').strip()
+    if database_url.startswith(('postgres://', 'postgresql://')):
+        from urllib.parse import parse_qs, unquote, urlparse
+
+        parsed = urlparse(database_url)
+        query_params = parse_qs(parsed.query)
+        return _postgresql_config(
+            name=unquote(parsed.path.lstrip('/')) or 'postgres',
+            user=unquote(parsed.username or ''),
+            password=unquote(parsed.password or ''),
+            host=parsed.hostname or 'localhost',
+            port=parsed.port or 5432,
+            sslmode=query_params.get('sslmode', [''])[0],
+        )
+
+    db_engine = config('DB_ENGINE', default='sqlite').strip().lower()
+    if db_engine in ('postgresql', 'postgres'):
+        return _postgresql_config(
+            name=config('DB_NAME', default='ecommerce_db'),
+            user=config('DB_USER', default='postgres'),
+            password=config('DB_PASSWORD', default='postgres'),
+            host=config('DB_HOST', default='localhost').strip(),
+            port=config('DB_PORT', default='5432'),
+            sslmode=config('DB_SSLMODE', default=''),
+        )
+
+    return {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+
+
 DB_ENGINE = config('DB_ENGINE', default='sqlite')
-if DB_ENGINE == 'postgresql':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('DB_NAME', default='ecommerce_db'),
-            'USER': config('DB_USER', default='postgres'),
-            'PASSWORD': config('DB_PASSWORD', default='postgres'),
-            'HOST': config('DB_HOST', default='localhost'),
-            'PORT': config('DB_PORT', default='5432'),
-        }
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+DATABASES = {'default': _build_default_database()}
 
 SITE_ID = 1
 

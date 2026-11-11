@@ -1,7 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { PackageCheck, ShieldAlert, ShoppingBag } from 'lucide-react';
+import { ArrowUpRight, PackageCheck, ShieldAlert, ShoppingBag } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { formatCurrency } from '../../utils/format';
+import { isSafeInternalRoute } from '../../utils/navigationGuard';
 import { ProductImage } from '../product/ProductImage';
 import { ActionConfirmCard } from './ActionConfirmCard';
 
@@ -140,6 +141,23 @@ export function AgentMessage({ message, confirmingId, onConfirmAction, onNavigat
                     View Order History
                   </Link>
                 </div>
+              );
+            }
+
+            if (card.type === 'navigation_link' && isSafeInternalRoute(card.path)) {
+              return (
+                <Link
+                  key={`nav-${idx}`}
+                  to={card.path}
+                  onClick={onNavigate}
+                  className="agent-nav-card"
+                >
+                  <div>
+                    <span className="agent-nav-card__kicker">Page Navigation</span>
+                    <strong>{card.label || 'Open Page'}</strong>
+                  </div>
+                  <ArrowUpRight size={16} />
+                </Link>
               );
             }
 

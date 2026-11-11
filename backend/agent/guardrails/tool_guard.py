@@ -1,16 +1,64 @@
 import json
+import re
+from urllib.parse import urlsplit
 
 RISK_LOW = 'LOW'
 RISK_MEDIUM = 'MEDIUM'
 RISK_HIGH = 'HIGH'
 
 MAX_TOOL_CALLS_PER_TURN = 5
+MAX_NAVIGATIONS_PER_TURN = 1
 
 FORBIDDEN_SPOOF_KEYS = {'user', 'user_id', 'owner_id', 'account_id', 'is_staff', 'is_superuser'}
+FORBIDDEN_REDIRECT_KEYS = {'url', 'href', 'path', 'redirect', 'redirect_url', 'target', 'external_url', 'next'}
 
 ALLOWED_SORT_KEYS = {'featured', 'price_asc', 'price_desc', 'rating', 'newest'}
 ALLOWED_SHIPPING_METHODS = {'standard', 'express'}
 ALLOWED_PAYMENT_METHODS = {'card', 'apple_pay', 'paypal'}
+ALLOWED_NAV_DESTINATIONS = {
+    'home',
+    'shop',
+    'product_detail',
+    'cart',
+    'checkout',
+    'orders',
+    'login',
+    'signup',
+}
+AUTH_REQUIRED_NAV_DESTINATIONS = {'orders'}
+
+SAFE_ROUTE_PATH_PATTERNS = (
+    re.compile(r'^/$'),
+    re.compile(r'^/shop$'),
+    re.compile(r'^/products/[1-9][0-9]*$'),
+    re.compile(r'^/cart$'),
+    re.compile(r'^/checkout$'),
+    re.compile(r'^/orders$'),
+    re.compile(r'^/login$'),
+    re.compile(r'^/signup$'),
+)
+DANGEROUS_URL_FRAGMENT_RE = re.compile(
+    r'(?:https?:|javascript:|data:|vbscript:|file:|//|\\\\|[\x00-\x1f\x7f<>])',
+    re.IGNORECASE,
+)
+
+
+def is_safe_internal_path(path):
+    """Strictly validate that a route stays inside allowlisted React Router store paths."""
+    if not isinstance(path, str):
+        return False
+    candidate = path.strip()
+    if not candidate.startswith('/') or candidate.startswith('//') or candidate.startswith('/\\'):
+        return False
+    if DANGEROUS_URL_FRAGMENT_RE.search(candidate) or '@' in candidate.split('?', 1)[0]:
+        return False
+
+    parsed = urlsplit(candidate)
+    if parsed.scheme or parsed.netloc:
+        return False
+    if not any(pattern.fullmatch(parsed.path) for pattern in SAFE_ROUTE_PATH_PATTERNS):
+        return False
+    return True
 
 
 class ToolGuardError(Exception):
@@ -74,7 +122,15 @@ def sanitize_audit_args(args):
     return sanitized
 
 
-def validate_tool_invocation(tool_name, raw_args, *, user, tool_registry, call_index=0):
+def validate_tool_invocation(
+    tool_name,
+    raw_args,
+    *,
+    user,
+    tool_registry,
+    call_index=0,
+    navigation_count=0,
+):
     """Enforce allowlist, per-turn loop cap, authentication, and strict argument validation."""
     if call_index >= MAX_TOOL_CALLS_PER_TURN:
         raise ToolGuardError(
@@ -190,6 +246,69 @@ def validate_tool_invocation(tool_name, raw_args, *, user, tool_registry, call_i
             'payment_method': payment_method,
             'shipping_address': addr or None,
             'notes': _parse_str(args.get('notes'), max_len=300),
+        }
+
+    elif tool_name == 'navigate_to_page':
+        if navigation_count >= MAX_NAVIGATIONS_PER_TURN:
+            raise ToolGuardError(
+                'navigation_limit_exceeded',
+                'I can only navigate to one page per response.',
+            )
+
+        for key in list(args.keys()):
+            if str(key).lower() in FORBIDDEN_REDIRECT_KEYS:
+                raise ToolGuardError(
+                    'unsafe_redirect_blocked',
+                    'Direct URL redirects are not permitted; only safe store pages are allowed.',
+                )
+
+        destination = _parse_str(args.get('destination'), max_len=40).lower()
+        if destination not in ALLOWED_NAV_DESTINATIONS:
+            raise ToolGuardError(
+                'unsafe_redirect_blocked',
+                'That destination is not an allowed storefront page.',
+            )
+
+        if destination in AUTH_REQUIRED_NAV_DESTINATIONS and (not user or not user.is_authenticated):
+            raise ToolGuardError(
+                'auth_required',
+                'Please sign in first so I can open your order history.',
+            )
+
+        category = _parse_str(args.get('category'), max_len=60) or None
+        if category and (DANGEROUS_URL_FRAGMENT_RE.search(category) or not re.fullmatch(r'[A-Za-z0-9 _-]+', category)):
+            raise ToolGuardError('unsafe_redirect_blocked', 'Invalid category filter parameter.')
+
+        query = _parse_str(args.get('query'), max_len=100) or None
+        if query and DANGEROUS_URL_FRAGMENT_RE.search(query):
+            raise ToolGuardError('unsafe_redirect_blocked', 'Invalid search parameter for navigation.')
+
+        product_id = args.get('product_id')
+        slug = _parse_str(args.get('slug'), max_len=160) or None
+        if slug and not re.fullmatch(r'[a-zA-Z0-9-]+', slug):
+            raise ToolGuardError('unsafe_redirect_blocked', 'Invalid product identifier.')
+
+        if destination == 'product_detail':
+            if product_id is None and not slug:
+                raise ToolGuardError('missing_argument', 'Provide product_id or slug to open a product page.')
+            parsed_pid = (
+                _parse_int(product_id, 'product_id', minimum=1, maximum=10_000_000)
+                if product_id is not None
+                else None
+            )
+        else:
+            parsed_pid = None
+
+        cleaned = {
+            'destination': destination,
+            'product_id': parsed_pid,
+            'slug': slug,
+            'category': category,
+            'query': query,
+            'min_price': _parse_optional_float(args.get('min_price'), 'min_price'),
+            'max_price': _parse_optional_float(args.get('max_price'), 'max_price'),
+            'in_stock': bool(args.get('in_stock', False)),
+            'sort': args.get('sort') if args.get('sort') in ALLOWED_SORT_KEYS else 'featured',
         }
 
     return spec, cleaned

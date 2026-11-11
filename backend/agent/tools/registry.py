@@ -16,6 +16,7 @@ from .catalog_tools import (
     tool_list_categories,
     tool_search_products,
 )
+from .navigation_tools import tool_navigate_to_page
 from .order_tools import tool_get_order_history, tool_prepare_checkout
 
 
@@ -173,6 +174,52 @@ TOOL_REGISTRY = {
         auth_required=True,
         xml_tag='checkout_confirmation_gate',
     ),
+    'navigate_to_page': ToolSpec(
+        name='navigate_to_page',
+        description=(
+            'Redirect the customer browser to an approved store page such as home, shop (with optional filters), '
+            'product_detail, cart, checkout, orders, login, or signup. External URLs and admin routes are blocked.'
+        ),
+        parameters={
+            'type': 'object',
+            'properties': {
+                'destination': {
+                    'type': 'string',
+                    'enum': ['home', 'shop', 'product_detail', 'cart', 'checkout', 'orders', 'login', 'signup'],
+                    'description': 'Target storefront page.',
+                },
+                'product_id': {
+                    'type': 'integer',
+                    'description': 'Required when destination is product_detail (unless slug is provided).',
+                },
+                'slug': {
+                    'type': 'string',
+                    'description': 'Product slug when destination is product_detail.',
+                },
+                'category': {
+                    'type': 'string',
+                    'description': 'Optional category filter when destination is shop.',
+                },
+                'query': {
+                    'type': 'string',
+                    'description': 'Optional search query when destination is shop.',
+                },
+                'min_price': {'type': 'number'},
+                'max_price': {'type': 'number'},
+                'in_stock': {'type': 'boolean'},
+                'sort': {
+                    'type': 'string',
+                    'enum': ['featured', 'price_asc', 'price_desc', 'rating', 'newest'],
+                },
+            },
+            'required': ['destination'],
+            'additionalProperties': False,
+        },
+        handler=tool_navigate_to_page,
+        risk_tier=RISK_MEDIUM,
+        auth_required=False,
+        xml_tag='store_navigation',
+    ),
 }
 
 
@@ -191,7 +238,7 @@ def get_groq_tools_schema():
     ]
 
 
-def dispatch_tool(tool_name, raw_args, *, user, session, call_index=0):
+def dispatch_tool(tool_name, raw_args, *, user, session, call_index=0, navigation_count=0):
     """Validate, execute, audit-log, and XML-wrap a single assistant tool call."""
     import time
 
@@ -207,6 +254,7 @@ def dispatch_tool(tool_name, raw_args, *, user, session, call_index=0):
             user=user,
             tool_registry=TOOL_REGISTRY,
             call_index=call_index,
+            navigation_count=navigation_count,
         )
     except ToolGuardError as exc:
         elapsed_ms = int((time.monotonic() - start) * 1000)

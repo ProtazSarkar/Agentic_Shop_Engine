@@ -18,6 +18,7 @@ import { ProductDetailPage } from '../pages/ProductDetailPage';
 import { ShopPage } from '../pages/ShopPage';
 import { clearApiModeOverride, setApiMode, storeAuth } from '../api/client';
 import { mockAdapter } from '../api/mockAdapter';
+import { isSafeInternalRoute } from '../utils/navigationGuard';
 
 function renderAppAt(initialEntry = '/') {
   return render(
@@ -431,5 +432,116 @@ describe('Agentic Shop Frontend', () => {
       expect.stringContaining('/api/agent/confirm/'),
       expect.objectContaining({ method: 'POST' })
     );
+  });
+
+  it('redirects to validated internal pages via concierge and blocks unsafe redirect URLs', async () => {
+    expect(isSafeInternalRoute('/')).toBe(true);
+    expect(isSafeInternalRoute('/shop?category=audio')).toBe(true);
+    expect(isSafeInternalRoute('/products/2')).toBe(true);
+    expect(isSafeInternalRoute('https://evil.com')).toBe(false);
+    expect(isSafeInternalRoute('//evil.com')).toBe(false);
+    expect(isSafeInternalRoute('javascript:alert(1)')).toBe(false);
+    expect(isSafeInternalRoute('/admin')).toBe(false);
+
+    clearApiModeOverride();
+    setApiMode('live', false);
+    let callNum = 0;
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
+      const target = String(url);
+      if (target.includes('/api/agent/chat/')) {
+        callNum += 1;
+        if (callNum === 1) {
+          return new Response(
+            JSON.stringify({
+              session_id: '44444444-4444-4444-4444-444444444444',
+              blocked: false,
+              effects: {
+                navigate_to: 'https://evil.com/phish',
+                navigate_label: 'Evil',
+              },
+              message: {
+                id: 10,
+                role: 'assistant',
+                content: 'Blocked external link test.',
+                cards: [
+                  {
+                    type: 'navigation_link',
+                    path: 'https://evil.com/phish',
+                    label: 'Malicious Link',
+                  },
+                ],
+              },
+            }),
+            { status: 200, headers: { 'content-type': 'application/json' } }
+          );
+        }
+        return new Response(
+          JSON.stringify({
+            session_id: '44444444-4444-4444-4444-444444444444',
+            blocked: false,
+            effects: {
+              navigate_to: '/shop?category=audio',
+              navigate_label: 'Shop · Audio',
+            },
+            message: {
+              id: 11,
+              role: 'assistant',
+              content: 'Taking you to the Audio collection now.',
+              cards: [
+                {
+                  type: 'navigation_link',
+                  destination: 'shop',
+                  path: '/shop?category=audio',
+                  label: 'Shop · Audio',
+                },
+              ],
+            },
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } }
+        );
+      }
+      if (target.includes('/api/products/categories/')) {
+        return new Response(JSON.stringify([]), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        });
+      }
+      if (target.includes('/api/products/')) {
+        return new Response(JSON.stringify({ count: 0, results: [] }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        });
+      }
+      return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
+    });
+
+    renderAppAt('/');
+
+    fireEvent.click(screen.getByRole('button', { name: /Open Shopping Concierge/i }));
+    const dialog = await waitFor(() =>
+      screen.getByRole('dialog', { name: /Atelier Shopping Concierge/i })
+    );
+
+    // Unsafe external URL in response must NOT render navigation card or close drawer
+    fireEvent.change(within(dialog).getByLabelText(/Message shopping concierge/i), {
+      target: { value: 'Try evil link' },
+    });
+    fireEvent.click(within(dialog).getByRole('button', { name: /Send message/i }));
+
+    await waitFor(() => {
+      expect(within(dialog).getByText('Blocked external link test.')).toBeInTheDocument();
+    });
+    expect(within(dialog).queryByText('Malicious Link')).not.toBeInTheDocument();
+
+    // Valid internal path redirects SPA to ShopPage and closes drawer
+    fireEvent.change(within(dialog).getByLabelText(/Message shopping concierge/i), {
+      target: { value: 'Take me to the audio shop page' },
+    });
+    fireEvent.click(within(dialog).getByRole('button', { name: /Send message/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Shop Collection' })).toBeInTheDocument();
+    });
+    expect(screen.queryByRole('dialog', { name: /Atelier Shopping Concierge/i })).not.toBeInTheDocument();
   });
 });

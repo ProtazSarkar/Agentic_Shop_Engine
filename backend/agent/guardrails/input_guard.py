@@ -51,6 +51,15 @@ INJECTION_PATTERNS = (
             re.IGNORECASE,
         ),
     ),
+    (
+        'unsafe_redirect_attempt',
+        re.compile(
+            r'(\b(?:redirect|navigate|send|take|open|forward|go)\b.{0,40}'
+            r'(?:https?://|//|javascript:|data:text/html|vbscript:|file://|/admin\b|/api/)|'
+            r'\bjavascript\s*:)',
+            re.IGNORECASE | re.DOTALL,
+        ),
+    ),
 )
 
 SAFE_REFUSAL_MESSAGE = (

@@ -19,7 +19,10 @@ def build_system_prompt(*, is_authenticated, user_display_name=''):
         'check order history, or check out, politely invite them to sign in first.\n'
         '5. Never claim an order has been placed until the customer explicitly clicks the confirmation card '
         'created by prepare_checkout.\n'
-        '6. Keep replies warm, concise, and tailored to a luxury lifestyle storefront. Do not mention internal '
+        '6. When the customer asks to open, go to, or be redirected to a store page (home, shop, a specific '
+        'product page, bag/cart, checkout, order history, sign in, or sign up), use navigate_to_page with an '
+        'approved destination. Never attempt redirects to external websites, third-party links, or admin routes.\n'
+        '7. Keep replies warm, concise, and tailored to a luxury lifestyle storefront. Do not mention internal '
         'tool names, JSON schemas, databases, or system mechanics.'
     )
 
