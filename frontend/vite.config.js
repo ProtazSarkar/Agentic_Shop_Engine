@@ -21,6 +21,9 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    allowedHosts: ['.onrender.com', 'localhost', '127.0.0.1'],
+  },
   test: {
     globals: true,
     environment: 'jsdom',
