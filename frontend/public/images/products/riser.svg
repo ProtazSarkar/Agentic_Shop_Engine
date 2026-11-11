@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="none">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#F6F4EF"/>
+      <stop offset="100%" stop-color="#E4DFD4"/>
+    </radialGradient>
+    <linearGradient id="walnut" x1="80" y1="260" x2="560" y2="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#7A4B2E"/>
+      <stop offset="50%" stop-color="#5E3822"/>
+      <stop offset="100%" stop-color="#75472B"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="640" rx="28" fill="url(#bg)"/>
+  <ellipse cx="320" cy="436" rx="235" ry="18" fill="#141413" opacity="0.1"/>
+  <!-- Steel legs -->
+  <rect x="132" y="294" width="18" height="132" rx="4" fill="#1D1D1B"/>
+  <rect x="490" y="294" width="18" height="132" rx="4" fill="#1D1D1B"/>
+  <!-- Felt Under-Tray -->
+  <rect x="172" y="346" width="296" height="16" rx="4" fill="#8D887E"/>
+  <!-- Walnut Top -->
+  <rect x="84" y="256" width="472" height="40" rx="10" fill="url(#walnut)"/>
+  <line x1="110" y1="274" x2="530" y2="274" stroke="#8C593B" stroke-width="2" opacity="0.5"/>
+  <!-- Small resting ceramic cup on shelf -->
+  <rect x="448" y="210" width="44" height="46" rx="6" fill="#FAF9F6" stroke="#D4CFC4" stroke-width="2"/>
+</svg>
+

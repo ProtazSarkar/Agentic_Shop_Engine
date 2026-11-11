@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="none">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#F6F4EF"/>
+      <stop offset="100%" stop-color="#E4DFD4"/>
+    </radialGradient>
+    <linearGradient id="leather" x1="160" y1="200" x2="480" y2="440" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#9A5B3A"/>
+      <stop offset="100%" stop-color="#6B3D24"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="640" rx="28" fill="url(#bg)"/>
+  <rect x="148" y="216" width="352" height="236" rx="26" fill="#141413" opacity="0.1"/>
+  <!-- Folio Body -->
+  <rect x="140" y="198" width="360" height="240" rx="26" fill="url(#leather)" stroke="#58301B" stroke-width="3"/>
+  <!-- Stitching -->
+  <rect x="156" y="214" width="328" height="208" rx="18" stroke="#C58B68" stroke-width="2" stroke-dasharray="6 6" opacity="0.7"/>
+  <!-- Brass Zip Pull -->
+  <rect x="492" y="286" width="24" height="52" rx="6" fill="#D4A656"/>
+  <!-- Embossed Patch -->
+  <rect x="256" y="294" width="128" height="44" rx="6" fill="#5A311C"/>
+  <text x="320" y="321" text-anchor="middle" fill="#E3C1A6" font-family="serif" font-size="18" letter-spacing="3">ATELIER</text>
+</svg>
+

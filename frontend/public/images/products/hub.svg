@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="none">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#F6F4EF"/>
+      <stop offset="100%" stop-color="#E4DFD4"/>
+    </radialGradient>
+  </defs>
+  <rect width="640" height="640" rx="28" fill="url(#bg)"/>
+  <ellipse cx="320" cy="492" rx="180" ry="18" fill="#141413" opacity="0.1"/>
+  <!-- Aluminum Stand -->
+  <path d="M260 478 L295 412 H345 L380 478 Z" fill="#9A958B"/>
+  <!-- Frame -->
+  <rect x="138" y="162" width="364" height="270" rx="20" fill="#1D1D1B" stroke="#484640" stroke-width="4"/>
+  <!-- E-Ink Paper Screen -->
+  <rect x="160" y="184" width="320" height="226" rx="10" fill="#EFECE4"/>
+  <!-- Minimalist E-ink HUD -->
+  <text x="184" y="238" fill="#141413" font-family="sans-serif" font-size="44" font-weight="700">12:40</text>
+  <text x="184" y="264" fill="#57554F" font-family="monospace" font-size="13">WED · NOV 11 · STUDIO</text>
+  <line x1="184" y1="286" x2="456" y2="286" stroke="#CFC9BD" stroke-width="2"/>
+  <rect x="184" y="306" width="124" height="80" rx="8" fill="#E4DFD3"/>
+  <text x="200" y="336" fill="#57554F" font-family="monospace" font-size="12">AIR QUALITY</text>
+  <text x="200" y="368" fill="#15803D" font-family="sans-serif" font-size="24" font-weight="700">412 ppm</text>
+  <rect x="324" y="306" width="132" height="80" rx="8" fill="#E4DFD3"/>
+  <text x="340" y="336" fill="#57554F" font-family="monospace" font-size="12">INDOOR</text>
+  <text x="340" y="368" fill="#141413" font-family="sans-serif" font-size="24" font-weight="700">21.5°C</text>
+</svg>
+

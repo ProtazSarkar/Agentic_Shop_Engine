@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="none">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#F7F5F0"/>
+      <stop offset="100%" stop-color="#E5E0D5"/>
+    </radialGradient>
+    <linearGradient id="clay" x1="200" y1="180" x2="420" y2="480" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#D7805C"/>
+      <stop offset="100%" stop-color="#B05432"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="640" rx="28" fill="url(#bg)"/>
+  <ellipse cx="300" cy="492" rx="165" ry="20" fill="#141413" opacity="0.1"/>
+  <!-- Carafe -->
+  <path d="M204 282 L352 282 L372 470 C372 480, 360 486, 350 486 L206 486 C196 486, 184 480, 184 470 Z" fill="#EFECE4" stroke="#C8C1B4" stroke-width="3"/>
+  <path d="M356 322 C394 322, 404 416, 366 426" stroke="#D4CFC4" stroke-width="14" stroke-linecap="round" fill="none"/>
+  <!-- Dripper Cone -->
+  <polygon points="180,174 376,174 316,282 240,282" fill="url(#clay)"/>
+  <rect x="218" y="274" width="120" height="14" rx="7" fill="#A34D2D"/>
+  <!-- Matching Tasting Cup -->
+  <rect x="394" y="388" width="94" height="96" rx="14" fill="url(#clay)"/>
+  <path d="M488 412 C514 412, 514 456, 488 456" stroke="#B05432" stroke-width="10" stroke-linecap="round" fill="none"/>
+</svg>
+

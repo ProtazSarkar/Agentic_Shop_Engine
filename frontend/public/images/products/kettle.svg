@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="none">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#F7F5F0"/>
+      <stop offset="100%" stop-color="#E5E0D5"/>
+    </radialGradient>
+    <linearGradient id="kettle" x1="200" y1="200" x2="420" y2="440" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2E2E2B"/>
+      <stop offset="45%" stop-color="#181816"/>
+      <stop offset="100%" stop-color="#2C2C29"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="640" rx="28" fill="url(#bg)"/>
+  <ellipse cx="320" cy="498" rx="175" ry="22" fill="#141413" opacity="0.1"/>
+  <!-- Base -->
+  <rect x="180" y="458" width="276" height="32" rx="8" fill="#1C1C1A"/>
+  <rect x="200" y="470" width="54" height="8" rx="4" fill="#C85A32" opacity="0.85"/>
+  <text x="380" y="479" fill="#EAE6DD" font-family="monospace" font-size="14" font-weight="600">93°C</text>
+  <!-- Gooseneck spout -->
+  <path d="M232 390 C172 390, 178 270, 130 225 C124 219, 136 212, 145 218 C194 260, 186 355, 240 356" stroke="#222220" stroke-width="20" stroke-linecap="round" fill="none"/>
+  <!-- Body -->
+  <path d="M225 228 L395 228 L418 456 L202 456 Z" fill="url(#kettle)"/>
+  <!-- Lid & Walnut Knob -->
+  <rect x="234" y="212" width="152" height="18" rx="6" fill="#2A2A27"/>
+  <rect x="292" y="182" width="36" height="30" rx="8" fill="#8B5A3C"/>
+  <!-- Handle -->
+  <path d="M398 256 C472 256, 488 386, 412 406" stroke="#242422" stroke-width="24" stroke-linecap="round" fill="none"/>
+  <path d="M402 272 C454 276, 466 376, 412 394" stroke="#8B5A3C" stroke-width="7" stroke-linecap="round" fill="none" opacity="0.7"/>
+</svg>
+

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="none">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#F7F6F2"/>
+      <stop offset="100%" stop-color="#E4E0D6"/>
+    </radialGradient>
+    <linearGradient id="cyl" x1="210" y1="160" x2="430" y2="480" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="55%" stop-color="#EFECE4"/>
+      <stop offset="100%" stop-color="#D7D2C6"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="640" rx="28" fill="url(#bg)"/>
+  <ellipse cx="320" cy="522" rx="135" ry="20" fill="#141413" opacity="0.1"/>
+  <!-- Upper body -->
+  <rect x="210" y="138" width="220" height="368" rx="34" fill="url(#cyl)" stroke="#D4CFC4" stroke-width="2"/>
+  <!-- Top grille recess -->
+  <ellipse cx="320" cy="146" rx="92" ry="18" fill="#2A2A27"/>
+  <!-- Halo LED Ring -->
+  <circle cx="320" cy="215" r="24" fill="#181816"/>
+  <circle cx="320" cy="215" r="14" stroke="#15803D" stroke-width="3"/>
+  <!-- 360 Intake vents -->
+  <g fill="#42413D" opacity="0.55">
+    <rect x="234" y="310" width="8" height="146" rx="4"/>
+    <rect x="254" y="310" width="8" height="146" rx="4"/>
+    <rect x="274" y="310" width="8" height="146" rx="4"/>
+    <rect x="294" y="310" width="8" height="146" rx="4"/>
+    <rect x="314" y="310" width="8" height="146" rx="4"/>
+    <rect x="334" y="310" width="8" height="146" rx="4"/>
+    <rect x="354" y="310" width="8" height="146" rx="4"/>
+    <rect x="374" y="310" width="8" height="146" rx="4"/>
+    <rect x="394" y="310" width="8" height="146" rx="4"/>
+  </g>
+</svg>
+

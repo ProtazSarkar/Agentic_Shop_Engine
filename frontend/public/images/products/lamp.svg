@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="none">
+  <defs>
+    <radialGradient id="bg" cx="55%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#FBF7EE"/>
+      <stop offset="100%" stop-color="#E5E0D5"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="20%" r="55%">
+      <stop offset="0%" stop-color="#FDE68A" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#FDE68A" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="640" height="640" rx="28" fill="url(#bg)"/>
+  <!-- Warm Light Cone -->
+  <polygon points="365,180 540,490 215,490" fill="url(#glow)"/>
+  <ellipse cx="220" cy="500" rx="115" ry="18" fill="#141413" opacity="0.1"/>
+  <!-- Base -->
+  <rect x="148" y="476" width="144" height="22" rx="11" fill="#1E1E1C"/>
+  <!-- Vertical Stem & Arm -->
+  <path d="M210 476 L210 245 L395 162" stroke="#242422" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="210" cy="245" r="12" fill="#C85A32"/>
+  <circle cx="385" cy="166" r="10" fill="#B8B2A6"/>
+  <!-- Lamp Head -->
+  <rect x="330" y="156" width="146" height="24" rx="12" transform="rotate(-12 330 156)" fill="#1C1C1A"/>
+  <rect x="342" y="176" width="124" height="8" rx="4" transform="rotate(-12 342 176)" fill="#FEF3C7"/>
+</svg>
+

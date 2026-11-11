@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="none">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#F5F3EE"/>
+      <stop offset="100%" stop-color="#E4DFD4"/>
+    </radialGradient>
+    <linearGradient id="cabinet" x1="170" y1="150" x2="470" y2="490" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3C3B37"/>
+      <stop offset="100%" stop-color="#1D1D1B"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="640" rx="28" fill="url(#bg)"/>
+  <ellipse cx="320" cy="518" rx="155" ry="20" fill="#141413" opacity="0.1"/>
+  <!-- Feet -->
+  <rect x="200" y="476" width="28" height="24" rx="4" fill="#141413"/>
+  <rect x="412" y="476" width="28" height="24" rx="4" fill="#141413"/>
+  <!-- Cabinet -->
+  <rect x="174" y="142" width="292" height="340" rx="26" fill="url(#cabinet)"/>
+  <!-- Acoustic fabric panel -->
+  <rect x="194" y="162" width="252" height="300" rx="16" fill="#4C4A44"/>
+  <!-- Subtle woofer & tweeter rings -->
+  <circle cx="320" cy="242" r="34" fill="#2A2925" opacity="0.6"/>
+  <circle cx="320" cy="242" r="14" fill="#1A1917"/>
+  <circle cx="320" cy="364" r="76" fill="#2D2C28" opacity="0.65"/>
+  <circle cx="320" cy="364" r="28" fill="#1A1917"/>
+  <!-- Accent LED -->
+  <circle cx="320" cy="442" r="4" fill="#C85A32"/>
+</svg>
+

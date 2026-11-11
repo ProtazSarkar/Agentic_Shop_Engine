@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="none">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#F6F4EE"/>
+      <stop offset="100%" stop-color="#E4DFD4"/>
+    </radialGradient>
+  </defs>
+  <rect width="640" height="640" rx="28" fill="url(#bg)"/>
+  <ellipse cx="320" cy="490" rx="165" ry="20" fill="#141413" opacity="0.1"/>
+  <!-- Charging Case -->
+  <rect x="190" y="256" width="260" height="184" rx="56" fill="#232320"/>
+  <path d="M190 326 H450" stroke="#3B3A35" stroke-width="4"/>
+  <circle cx="320" cy="366" r="6" fill="#C85A32"/>
+  <!-- Floating Earbuds -->
+  <g transform="translate(215 162)">
+    <ellipse cx="34" cy="36" rx="34" ry="30" fill="#191917"/>
+    <rect x="24" y="54" width="18" height="58" rx="9" fill="#9A9488"/>
+    <circle cx="34" cy="36" r="14" fill="#32312D"/>
+  </g>
+  <g transform="translate(356 162)">
+    <ellipse cx="34" cy="36" rx="34" ry="30" fill="#191917"/>
+    <rect x="26" y="54" width="18" height="58" rx="9" fill="#9A9488"/>
+    <circle cx="34" cy="36" r="14" fill="#32312D"/>
+  </g>
+</svg>
+

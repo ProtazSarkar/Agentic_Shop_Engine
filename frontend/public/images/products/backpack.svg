@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="none">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#F5F3EE"/>
+      <stop offset="100%" stop-color="#E4DFD4"/>
+    </radialGradient>
+    <linearGradient id="pack" x1="180" y1="140" x2="460" y2="500" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2D302E"/>
+      <stop offset="100%" stop-color="#191B1A"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="640" rx="28" fill="url(#bg)"/>
+  <ellipse cx="320" cy="522" rx="145" ry="20" fill="#141413" opacity="0.1"/>
+  <!-- Top Handle -->
+  <path d="M274 152 C274 114, 366 114, 366 152" stroke="#1F2120" stroke-width="16" stroke-linecap="round"/>
+  <!-- Main Pack -->
+  <rect x="182" y="142" width="276" height="366" rx="48" fill="url(#pack)"/>
+  <!-- Pocket Seam -->
+  <path d="M188 265 Q320 282 452 265" stroke="#424643" stroke-width="4" fill="none"/>
+  <rect x="208" y="302" width="224" height="164" rx="24" fill="#232524" stroke="#393D3A" stroke-width="2"/>
+  <!-- Accent zipper & tag -->
+  <line x1="230" y1="302" x2="410" y2="302" stroke="#C85A32" stroke-width="5" stroke-linecap="round"/>
+  <rect x="294" y="210" width="52" height="22" rx="5" fill="#141413" stroke="#575B58" stroke-width="2"/>
+  <circle cx="320" cy="221" r="4" fill="#C85A32"/>
+</svg>
+
